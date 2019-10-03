@@ -1,7 +1,12 @@
-import 'package:counter_app_bloc/counter_%20event.dart';
 import 'package:counter_app_bloc/counter_bloc.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'counter_ event.dart';
+import 'counter_bloc.dart';
+import 'counter_bloc.dart';
+import 'counter_bloc.dart';
 
 void main() => runApp(MyApp());
 
@@ -13,71 +18,68 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      // BlocProvider will automatically handle disposing the bloc.
+      home: BlocProvider<CounterBloc>(
+        builder: (context) => CounterBloc(), // so that CounterBloc is available down the tree
+        child: HomePage(),
+      )
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  CounterBloc _counterBloc = CounterBloc();
-
+// instead of stateful widget, its stateless widget
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
+    CounterBloc counterBloc = BlocProvider.of<CounterBloc>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Counter with BLoC 0.21.0"),
+        centerTitle: true,
       ),
-      body: BlocProvider(
-        bloc: _counterBloc,
-        child: Center(
-          child: BlocBuilder(
-            bloc: _counterBloc,
-            builder: (BuildContext context, int dataStream) {
-              return Text(
-                "You have clicked $dataStream times",
-                style: TextStyle(fontSize: 20.0),
-              );
-            },
-          ),
-        ),
+      /**
+       * BlocBuilder needs builder and a bloc
+       * bloc can be ommitted,. then BlocBuilder will automatically perform a lookup
+       * using BlocProvider and the current BuildContext.
+       */
+      body: BlocBuilder<CounterBloc, int>( // bloc & state
+        builder: (context, data) { // context & currentState
+          return Center(
+            child: Text("$data", style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.orange,
+            ),),
+          );
+        },
       ),
-      floatingActionButton: Row(
+      floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
-          FloatingActionButton(
-            onPressed: () {
-              _counterBloc.dispatch(IncrementEvent());
-            },
-            tooltip: 'Increment',
-            child: Icon(Icons.add),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5.0),
+            child: FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                counterBloc.dispatch(CounterEvent.increment);
+              },
+            ),
           ),
-          SizedBox(
-            width: 10.0,
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5.0),
+            child: FloatingActionButton(
+              child: Icon(Icons.remove),
+              onPressed: () {
+                counterBloc.dispatch(CounterEvent.decrement);
+              },
+            ),
           ),
-          FloatingActionButton(
-            onPressed: () {
-              _counterBloc.dispatch(DecrementEvent());
-            },
-            tooltip: 'Decrement',
-            child: Icon(Icons.remove),
-          )
         ],
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _counterBloc.dispose();
-    super.dispose();
-  }
 }
+
+
